@@ -23,6 +23,7 @@ func main() {
 	app.Name = "tester"
 	app.Usage = "Make the rabbit cry"
 	app.Flags = []cli.Flag{
+		cli.StringFlag{Name: "x-max-priority", Value: "", Usage: "RabbitMQ x-max-priority"},
 		cli.StringFlag{Name: "vhost", Value: "/", Usage: "RabbitMQ vhost name"},
 		cli.StringFlag{Name: "queue", Value: "stress-test-exchange", Usage: "RabbitMQ queue name"},
 		cli.StringFlag{Name: "server, s", Value: "rabbit-mq-test.cs1cloud.internal", Usage: "Hostname for RabbitMQ server"},
@@ -61,7 +62,10 @@ func runApp(c *cli.Context) {
 
 func MakeQueue(c *amqp.Channel, context *cli.Context) amqp.Queue {
 	args := make(amqp.Table)
-	args["x-max-priority"] = int32(4)
+	p := context.String("x-max-priority")
+	if "" != p {
+		args["x-max-priority"] = p
+	}
 	q, err := c.QueueDeclare(context.String("queue"), true, false, false, false, args)
 	if err != nil {
 		log.Fatal(err)
