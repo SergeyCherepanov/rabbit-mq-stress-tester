@@ -26,6 +26,9 @@ Running
 	   help, h	Shows a list of commands or help for one command
 
 	GLOBAL OPTIONS:
+       --x-max-priority value           RabbitMQ x-max-priority
+       --vhost value                    RabbitMQ vhost name (default: "/")
+       --queue value                    RabbitMQ queue name (default: "stress-test-exchange")
 	   --server, -s 'rabbit-mq-test.cs1cloud.internal'	Hostname for RabbitMQ server
 	   --producer, -p '0'				Number of messages to produce, -1 to produce forever
 	   --port, -P 						Rabbitmq server port, default 5672
