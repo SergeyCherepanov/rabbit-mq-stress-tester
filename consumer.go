@@ -6,11 +6,16 @@ import (
 	"time"
 
 	"github.com/streadway/amqp"
+	"github.com/codegangsta/cli"
 )
 
-func Consume(uri string, doneChan chan bool) {
+func Consume(uri string, doneChan chan bool, c *cli.Context) {
 	log.Println("Consuming...")
-	connection, err := amqp.Dial(uri)
+	connection, err := amqp.DialConfig(uri, amqp.Config{
+		Heartbeat: 10 * time.Second,
+		Locale:    "en_US",
+		Vhost: c.String("vhost"),
+	})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -22,7 +27,7 @@ func Consume(uri string, doneChan chan bool) {
 	}
 	defer channel.Close()
 
-	q := MakeQueue(channel)
+	q := MakeQueue(channel, c)
 
 	msgs, err := channel.Consume(q.Name, "", true, false, false, false, nil)
 	if err != nil {

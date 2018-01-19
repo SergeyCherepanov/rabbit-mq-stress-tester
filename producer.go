@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/streadway/amqp"
+	"github.com/codegangsta/cli"
 )
 
 type ProducerConfig struct {
@@ -15,8 +16,12 @@ type ProducerConfig struct {
 	WaitForAck bool
 }
 
-func Produce(config ProducerConfig, tasks chan int) {
-	connection, err := amqp.Dial(config.Uri)
+func Produce(config ProducerConfig, tasks chan int, c *cli.Context) {
+	connection, err := amqp.DialConfig(config.Uri, amqp.Config{
+		Heartbeat: 10 * time.Second,
+		Locale:    "en_US",
+		Vhost: c.String("vhost"),
+	})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -32,7 +37,7 @@ func Produce(config ProducerConfig, tasks chan int) {
 
 	ack, nack := channel.NotifyConfirm(make(chan uint64, 1), make(chan uint64, 1))
 
-	q := MakeQueue(channel)
+	q := MakeQueue(channel, c)
 
 	for {
 

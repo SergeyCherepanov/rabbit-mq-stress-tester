@@ -23,6 +23,8 @@ func main() {
 	app.Name = "tester"
 	app.Usage = "Make the rabbit cry"
 	app.Flags = []cli.Flag{
+		cli.StringFlag{Name: "vhost", Value: "/", Usage: "RabbitMQ vhost name"},
+		cli.StringFlag{Name: "queue", Value: "stress-test-exchange", Usage: "RabbitMQ queue name"},
 		cli.StringFlag{Name: "server, s", Value: "rabbit-mq-test.cs1cloud.internal", Usage: "Hostname for RabbitMQ server"},
 		cli.StringFlag{Name: "port, P", Value: "5672", Usage: "Port for RabbitMQ server"},
 		cli.StringFlag{Name: "user, u", Value: "guest", Usage: "user for RabbitMQ server"},
@@ -48,28 +50,30 @@ func runApp(c *cli.Context) {
 	uri := porto + c.String("user") + ":" + c.String("password") + "@" + c.String("server") + ":" + c.String("port")
 
 	if c.Int("consumer") > -1 {
-		makeConsumers(uri, c.Int("concurrency"), c.Int("consumer"))
+		makeConsumers(uri, c.Int("concurrency"), c.Int("consumer"), c)
 	}
 
 	if c.Int("producer") != 0 {
 		config := ProducerConfig{uri, c.Int("bytes"), c.Bool("quiet"), c.Bool("wait-for-ack")}
-		makeProducers(c.Int("producer"), c.Int("wait"), c.Int("concurrency"), config)
+		makeProducers(c.Int("producer"), c.Int("wait"), c.Int("concurrency"), config, c)
 	}
 }
 
-func MakeQueue(c *amqp.Channel) amqp.Queue {
-	q, err := c.QueueDeclare("stress-test-exchange", true, false, false, false, nil)
+func MakeQueue(c *amqp.Channel, context *cli.Context) amqp.Queue {
+	args := make(amqp.Table)
+	args["x-max-priority"] = int32(4)
+	q, err := c.QueueDeclare(context.String("queue"), true, false, false, false, args)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return q
 }
 
-func makeProducers(n int, wait int, concurrency int, config ProducerConfig) {
+func makeProducers(n int, wait int, concurrency int, config ProducerConfig, c *cli.Context) {
 
 	taskChan := make(chan int)
 	for i := 0; i < concurrency; i++ {
-		go Produce(config, taskChan)
+		go Produce(config, taskChan, c)
 	}
 
 	start := time.Now()
@@ -86,12 +90,12 @@ func makeProducers(n int, wait int, concurrency int, config ProducerConfig) {
 	log.Printf("Finished: %s", time.Since(start))
 }
 
-func makeConsumers(uri string, concurrency int, toConsume int) {
+func makeConsumers(uri string, concurrency int, toConsume int, c *cli.Context) {
 
 	doneChan := make(chan bool)
 
 	for i := 0; i < concurrency; i++ {
-		go Consume(uri, doneChan)
+		go Consume(uri, doneChan, c)
 	}
 
 	start := time.Now()
