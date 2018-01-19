@@ -23,7 +23,7 @@ func main() {
 	app.Name = "tester"
 	app.Usage = "Make the rabbit cry"
 	app.Flags = []cli.Flag{
-		cli.IntFlag{Name: "x-max-priority", Value: nil, Usage: "RabbitMQ x-max-priority"},
+		cli.IntFlag{Name: "x-max-priority", Usage: "RabbitMQ x-max-priority"},
 		cli.StringFlag{Name: "vhost", Value: "/", Usage: "RabbitMQ vhost name"},
 		cli.StringFlag{Name: "queue", Value: "stress-test-exchange", Usage: "RabbitMQ queue name"},
 		cli.StringFlag{Name: "server, s", Value: "rabbit-mq-test.cs1cloud.internal", Usage: "Hostname for RabbitMQ server"},
