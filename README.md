@@ -55,3 +55,15 @@ Consume messages forever:
 Produce 100,000 messages of 10KB each, using 50 concurrent goroutines, waiting 100 nanoseconds between each message. Only print to stdout if there is a nack or when you finish.
 
 	./tester -s rabbit-mq-test.cs1cloud.internal -p 100000 -b 10000 -w 100 -n 50 -q
+	
+Oro
+--------
+
+Produce 100 messages
+
+        ./rabbit-mq-stress-tester-linux-amd64 --vhost oro --queue oro.search -s 10.100.14.5  --user mquser --pass password1234 --producer=100 --wait-for-ack --x-max-priority 4
+
+
+Consumer messages
+
+        ./rabbit-mq-stress-tester-linux-amd64 --vhost oro --queue oro.default -s 10.100.14.5 --user mquser --pass password1234 --consumer=1 --wait-for-ack --x-max-priority 4
